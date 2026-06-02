@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>RSVP Capacity Building Dosen - Manajemen UII</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; margin: 0; }
+        .form-input-custom { width: 100%; padding: 0.625rem 0.875rem; border-radius: 0.5rem; border: 1px solid #cbd5e1; font-size: 0.875rem; color: #334155; outline: none; transition: all 0.2s; background-color: #ffffff; }
+        .form-input-custom:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        .box-alasan { display: none; border-left: 4px solid #ef4444; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <nav class="bg-blue-700 text-white shadow-sm sticky top-0 z-50 py-3 sm:py-4">
+        <div class="max-w-6xl mx-auto flex justify-between items-center px-4 sm:px-6">
+            <div class="flex items-center gap-3">
+                <img src="https://lh3.googleusercontent.com/d/1EXPFGOzHj6a06TxLKfriCqz8VBV7p26i" alt="Logo UII" class="h-8 sm:h-9 w-auto object-contain" referrerpolicy="no-referrer" onerror="this.style.display='none';">
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto p-4 sm:p-6 mt-2 flex-grow w-full flex flex-col items-center">
+        <div id="formCard" class="w-full max-w-2xl bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden my-4 sm:my-6 animate__animated animate__fadeInUp">
+            
+            <div class="bg-gradient-to-r from-blue-700 to-indigo-800 p-6 sm:p-8 text-white relative">
+                <p class="text-blue-200 text-xs font-bold tracking-widest uppercase mb-1">Konfirmasi Kehadiran</p>
+                <h1 class="text-xl sm:text-2xl font-bold tracking-tight mb-2">CAPACITY BUILDING DOSEN</h1>
+                <p class="text-blue-100 text-xs sm:text-sm leading-relaxed font-medium opacity-90">
+                    Penguatan Kapasitas Dosen dalam Pembelajaran dan Pembimbingan Berbasis Kewirausahaan dan Implementasi Bisnis
+                </p>
+                
+                <div class="mt-6 mb-5 space-y-3 text-xs text-blue-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0"><i class="far fa-calendar-alt"></i></div>
+                        <span class="font-medium text-sm">Sabtu-Minggu, 13-14 Juni 2026</span>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 mt-0.5"><i class="fas fa-map-marker-alt"></i></div>
+                        <div class="flex flex-col">
+                            <a href="https://maps.app.goo.gl/3UdFWw6qQLFpK2Sw6" target="_blank" class="font-medium text-sm text-white hover:text-blue-200 hover:underline transition-colors">
+                                Hotel Grand Keisha Yogyakarta
+                            </a>
+                            <span class="opacity-80 mt-0.5">Meeting Room A Lantai 3</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-5 border-t border-white/10 flex flex-col sm:flex-row gap-3">
+                    <a href="https://drive.google.com/file/d/1h955NaPqnFlUuZs88j0MwqP58Co9flRl/view?usp=sharing" target="_blank" class="w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white border border-white/20 font-medium py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-sm">
+                        <i class="fas fa-file-pdf opacity-80"></i> Surat Undangan & ToR Rundown
+                    </a>
+                    <a href="https://maps.app.goo.gl/3UdFWw6qQLFpK2Sw6" target="_blank" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-400 text-white border border-blue-400 font-medium py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-sm shadow-sm">
+                        <i class="fas fa-location-arrow opacity-90"></i> Panduan Lokasi
+                    </a>
+                </div>
+            </div>
+
+            <div class="p-6 sm:p-8">
+                <div id="formContainer">
+                    <form id="rsvpForm" class="space-y-6">
+                        <div>
+                            <label for="namaDosen" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Nama Dosen<span class="text-red-500 text-sm">*</span></label>
+                            <div class="relative">
+                                <select class="form-input-custom appearance-none font-medium pr-10 cursor-pointer" id="namaDosen" name="namaDosen" required>
+                                    <option value="" disabled selected>Sedang memuat daftar peserta...</option>
+                                </select>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                                    <i class="fas fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50/70 rounded-xl border border-slate-200 p-4 sm:p-5 space-y-3 transition-all hover:border-slate-300">
+                            <div class="flex items-center justify-between border-b border-slate-200/60 pb-2.5 mb-1">
+                                <span class="text-sm font-bold text-slate-800">Hari Pertama</span>
+                                <span class="text-[11px] bg-blue-50 text-blue-700 font-semibold px-2.5 py-0.5 rounded-full">Sabtu, 13 Juni 2026</span>
+                            </div>
+                            <label class="block text-xs font-medium text-slate-500">Konfirmasi Kehadiran: <span class="text-red-500 text-sm">*</span></label>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <label class="border border-slate-200 bg-white rounded-lg p-3 sm:py-4 text-center cursor-pointer flex items-center sm:flex-col justify-center gap-2 hover:bg-slate-50 transition-all">
+                                    <input type="radio" name="h1" value="Hadir" onclick="toggleAlasan('h1', false)" class="w-4 h-4 text-blue-600 focus:ring-blue-500" required>
+                                    <span class="text-sm sm:text-xs font-semibold text-slate-700">Hadir</span>
+                                </label>
+                                <label class="border border-slate-200 bg-white rounded-lg p-3 sm:py-4 text-center cursor-pointer flex items-center sm:flex-col justify-center gap-2 hover:bg-slate-50 transition-all">
+                                    <input type="radio" name="h1" value="Tidak Hadir" onclick="toggleAlasan('h1', true)" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-sm sm:text-xs font-semibold text-slate-700">Tidak Hadir</span>
+                                </label>
+                                <label class="border border-slate-200 bg-white rounded-lg p-3 sm:py-4 text-center cursor-pointer flex items-center sm:flex-col justify-center gap-2 hover:bg-slate-50 transition-all">
+                                    <input type="radio" name="h1" value="Tentatif" onclick="toggleAlasan('h1', true)" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-sm sm:text-xs font-semibold text-slate-700">Tentatif</span>
+                                </label>
+                            </div>
+                            <div id="box_alasan_h1" class="box-alasan bg-red-50/50 rounded-lg p-3 mt-3 animate__animated animate__fadeInFast">
+                                <label for="alasanH1" class="block text-[11px] font-bold text-red-700 uppercase tracking-wide mb-1.5">Mohon Berikan Alasan / Keterangan: <span class="text-red-500 text-sm">*</span></label>
+                                <input type="text" class="form-input-custom !border-red-200 focus:!border-red-400 focus:!ring-red-100" id="alasanH1" name="alasanH1" placeholder="Tuliskan keterangan singkat...">
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50/70 rounded-xl border border-slate-200 p-4 sm:p-5 space-y-3 transition-all hover:border-slate-300">
+                            <div class="flex items-center justify-between border-b border-slate-200/60 pb-2.5 mb-1">
+                                <span class="text-sm font-bold text-slate-800">Hari Kedua</span>
+                                <span class="text-[11px] bg-blue-50 text-blue-700 font-semibold px-2.5 py-0.5 rounded-full">Minggu, 14 Juni 2026</span>
+                            </div>
+                            <label class="block text-xs font-medium text-slate-500">Konfirmasi Kehadiran: <span class="text-red-500 text-sm">*</span></label>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <label class="border border-slate-200 bg-white rounded-lg p-3 sm:py-4 text-center cursor-pointer flex items-center sm:flex-col justify-center gap-2 hover:bg-slate-50 transition-all">
+                                    <input type="radio" name="h2" value="Hadir" onclick="toggleAlasan('h2', false)" class="w-4 h-4 text-blue-600 focus:ring-blue-500" required>
+                                    <span class="text-sm sm:text-xs font-semibold text-slate-700">Hadir</span>
+                                </label>
+                                <label class="border border-slate-200 bg-white rounded-lg p-3 sm:py-4 text-center cursor-pointer flex items-center sm:flex-col justify-center gap-2 hover:bg-slate-50 transition-all">
+                                    <input type="radio" name="h2" value="Tidak Hadir" onclick="toggleAlasan('h2', true)" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-sm sm:text-xs font-semibold text-slate-700">Tidak Hadir</span>
+                                </label>
+                                <label class="border border-slate-200 bg-white rounded-lg p-3 sm:py-4 text-center cursor-pointer flex items-center sm:flex-col justify-center gap-2 hover:bg-slate-50 transition-all">
+                                    <input type="radio" name="h2" value="Tentatif" onclick="toggleAlasan('h2', true)" class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+                                    <span class="text-sm sm:text-xs font-semibold text-slate-700">Tentatif</span>
+                                </label>
+                            </div>
+                            <div id="box_alasan_h2" class="box-alasan bg-red-50/50 rounded-lg p-3 mt-3 animate__animated animate__fadeInFast">
+                                <label for="alasanH2" class="block text-[11px] font-bold text-red-700 uppercase tracking-wide mb-1.5">Mohon Berikan Alasan / Keterangan: <span class="text-red-500 text-sm">*</span></label>
+                                <input type="text" class="form-input-custom !border-red-200 focus:!border-red-400 focus:!ring-red-100" id="alasanH2" name="alasanH2" placeholder="Tuliskan keterangan singkat...">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="catatan" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Catatan Tambahan (Opsional)</label>
+                            <textarea class="form-input-custom h-20 resize-none font-medium text-sm" id="catatan" name="catatan" placeholder="Tulis catatan atau info penting lainnya..."></textarea>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="button" id="btnKirim" onclick="konfirmasiKirim()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 sm:py-3.5 px-4 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base">
+                                <span>Kirim Konfirmasi Kehadiran</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="successMessage" class="hidden text-center py-10 px-4 animate__animated animate__zoomIn">
+                    <div class="bg-emerald-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 border border-emerald-100 shadow-inner">
+                        <i class="fas fa-check-circle text-emerald-500 text-4xl animate-bounce"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Konfirmasi Berhasil Dikirim!</h3>
+                    <p class="text-slate-500 text-sm max-w-sm mx-auto leading-relaxed">
+                        Data Bapak/Ibu telah tercatat dengan aman pada sistem rekapitulasi Program Studi Manajemen FBE UII. Terima kasih atas ketersediaan waktunya.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center mt-auto mb-6 w-full pt-6 border-t border-slate-200/60 px-4">
+        <p class="text-xs font-bold text-slate-700 tracking-wide">© 2026 Program Studi Manajemen</p>
+        <p class="text-[11px] text-slate-500 font-medium mt-1">
+            Aplikasi ini dibuat dan dikembangkan oleh 
+            <a href="https://selagie-universe.web.app/" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline transition-colors font-semibold">Selagie Universe</a>
+        </p>
+    </footer>
+
+    <script>
+        const endpoint = "https://script.google.com/macros/s/AKfycbw-HCHZdQQcg5D0WrobicZsWSjK60Id3uRmcMptFADNJZUdz83XQHf7MRN1fXAeY1CwMg/exec";
+
+        window.addEventListener('load', () => {
+            // Hilangkan initial loader bawaan Plesk jika ada
+            const pleskLoader = document.getElementById('initial-loader');
+            if(pleskLoader) {
+                pleskLoader.classList.remove('fade-in');
+                pleskLoader.classList.add('fade-out');
+                setTimeout(() => pleskLoader.style.display = 'none', 300);
+            }
+            
+            // Ambil daftar dosen via Fetch
+            fetch(endpoint + "?action=getDosen")
+                .then(res => res.json())
+                .then(listDosen => isiDropdownNama(listDosen))
+                .catch(() => Swal.fire('Error', 'Gagal memuat daftar peserta.', 'error'));
+        });
+
+        function isiDropdownNama(listDosen) {
+            var select = document.getElementById("namaDosen");
+            select.innerHTML = '<option value="" disabled selected>-- Pilih Nama Anda --</option>';
+            if(listDosen.length === 0 || listDosen[0].startsWith("Error")) {
+                select.innerHTML = '<option value="" disabled>Semua dosen telah mengisi RSVP</option>';
+                return;
+            }
+            listDosen.forEach(nama => {
+                var opt = document.createElement("option");
+                opt.value = nama; opt.innerHTML = nama;
+                select.appendChild(opt);
+            });
+        }
+
+        function toggleAlasan(hari, tunjukkan) {
+            var box = document.getElementById("box_alasan_" + hari);
+            var input = document.getElementById("alasan" + (hari === 'h1' ? 'H1' : 'H2'));
+            if (tunjukkan) {
+                box.style.display = "block"; input.required = true; input.focus();
+            } else {
+                box.style.display = "none"; input.required = false; input.value = ""; 
+            }
+        }
+
+        function konfirmasiKirim() {
+            var form = document.getElementById('rsvpForm');
+            if (!form.checkValidity()) { form.reportValidity(); return; }
+
+            Swal.fire({
+                title: 'Konfirmasi Kehadiran',
+                text: "Mohon pastikan status kehadiran yang Anda pilih sudah benar sebelum dikirimkan.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#2563eb',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Kirim Konfirmasi',
+                cancelButtonText: 'Periksa Kembali',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) { eksekusiKirimForm(form); }
+            });
+        }
+
+        function eksekusiKirimForm(form) {
+            document.getElementById("btnKirim").disabled = true;
+            Swal.fire({ title: 'Sedang Mengirim...', text: 'Mohon tunggu...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
+            const dataData = {
+                namaDosen: document.getElementById('namaDosen').value,
+                h1: form.elements['h1'].value,
+                alasanH1: document.getElementById('alasanH1').value,
+                h2: form.elements['h2'].value,
+                alasanH2: document.getElementById('alasanH2').value,
+                catatan: document.getElementById('catatan').value
+            };
+
+            fetch(endpoint, {
+                method: 'POST',
+                mode: 'no-cors', // Mencegah pemblokiran CORS browser saat lempar data ke Google
+                body: JSON.stringify(dataData)
+            })
+            .then(() => {
+                Swal.close();
+                document.getElementById("formContainer").style.display = "none";
+                document.getElementById("successMessage").classList.remove('hidden');
+            })
+            .catch(err => {
+                Swal.fire('Gagal', 'Terjadi masalah pengiriman ke server.', 'error');
+                document.getElementById("btnKirim").disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
