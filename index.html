@@ -68,12 +68,12 @@
                         <div>
                             <label for="namaDosen" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Nama Dosen<span class="text-red-500 text-sm">*</span></label>
                             <div class="relative">
-                                <select class="form-input-custom appearance-none font-medium pr-10 cursor-pointer" id="namaDosen" name="namaDosen" required>
-                                    <option value="" disabled selected>Sedang memuat daftar peserta...</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                                    <i class="fas fa-chevron-down text-xs"></i>
+                                <input type="text" id="namaDosen" name="namaDosen" class="form-input-custom font-medium pr-10" placeholder="Ketik nama Anda untuk mencari..." autocomplete="off" required>
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 pointer-events-none">
+                                    <i class="fas fa-search text-xs"></i>
                                 </div>
+                                
+                                <div id="suggestionBox" class="absolute z-50 w-full bg-white border border-slate-200 rounded-xl mt-1 shadow-lg max-h-60 overflow-y-auto hidden animate__animated animate__fadeInUp animate__faster"></div>
                             </div>
                         </div>
 
@@ -146,7 +146,7 @@
                     <div class="bg-emerald-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5 border border-emerald-100 shadow-inner">
                         <i class="fas fa-check-circle text-emerald-500 text-4xl animate-bounce"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-slate-800 mb-2">Konfirmasi Berhasil Dikirim!</h3>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Data Berhasil Disimpan!</h3>
                     <p class="text-slate-500 text-sm max-w-sm mx-auto leading-relaxed">
                         Data Bapak/Ibu telah tercatat dengan aman pada sistem rekapitulasi Program Studi Manajemen FBE UII. Terima kasih atas ketersediaan waktunya.
                     </p>
@@ -164,10 +164,13 @@
     </footer>
 
     <script>
+        // PENTING: Jika kamu sedang testing pakai /dev, pastikan string URL di bawah ini diakhiri /dev
+        // Jika form sudah final, pastikan kamu Deploy Ulang di GAS lalu ubah ke /exec
         const endpoint = "https://script.google.com/macros/s/AKfycbw-HCHZdQQcg5D0WrobicZsWSjK60Id3uRmcMptFADNJZUdz83XQHf7MRN1fXAeY1CwMg/exec";
+        
+        let semuaDosenData = [];
 
         window.addEventListener('load', () => {
-            // Hilangkan initial loader bawaan Plesk jika ada
             const pleskLoader = document.getElementById('initial-loader');
             if(pleskLoader) {
                 pleskLoader.classList.remove('fade-in');
@@ -175,25 +178,168 @@
                 setTimeout(() => pleskLoader.style.display = 'none', 300);
             }
             
-            // Ambil daftar dosen via Fetch
             fetch(endpoint + "?action=getDosen")
                 .then(res => res.json())
-                .then(listDosen => isiDropdownNama(listDosen))
-                .catch(() => Swal.fire('Error', 'Gagal memuat daftar peserta.', 'error'));
+                .then(listDosen => {
+                    // Cek jika API merespons dengan format lama (array string biasa) 
+                    // karena belum ter-deploy dengan benar
+                    semuaDosenData = listDosen.map(item => {
+                        if (typeof item === 'string') {
+                            console.warn("⚠️ API masih mengirim format lama (string). Mohon Deploy ulang GAS sebagai versi baru.");
+                            return { nama: item, sudahIsi: false, dataLama: null };
+                        }
+                        return item;
+                    });
+                    inisialisasiPencarian();
+                })
+                .catch((err) => {
+                    console.error("Error Fetching Data:", err);
+                    Swal.fire('Error', 'Gagal memuat daftar peserta. Cek koneksi atau URL GAS.', 'error');
+                });
         });
 
-        function isiDropdownNama(listDosen) {
-            var select = document.getElementById("namaDosen");
-            select.innerHTML = '<option value="" disabled selected>-- Pilih Nama Anda --</option>';
-            if(listDosen.length === 0 || listDosen[0].startsWith("Error")) {
-                select.innerHTML = '<option value="" disabled>Semua dosen telah mengisi RSVP</option>';
+        function inisialisasiPencarian() {
+            const input = document.getElementById("namaDosen");
+            const box = document.getElementById("suggestionBox");
+
+            if (semuaDosenData.length === 0 || (semuaDosenData[0].nama && String(semuaDosenData[0].nama).startsWith("Error"))) {
+                input.placeholder = "Gagal memuat daftar dosen";
+                input.disabled = true;
                 return;
             }
-            listDosen.forEach(nama => {
-                var opt = document.createElement("option");
-                opt.value = nama; opt.innerHTML = nama;
-                select.appendChild(opt);
+
+            input.addEventListener("input", filterSaran);
+            input.addEventListener("focus", filterSaran);
+
+            document.addEventListener("click", (e) => {
+                if (!input.contains(e.target) && !box.contains(e.target)) {
+                    box.classList.add("hidden");
+                }
             });
+
+            function filterSaran() {
+                const keyword = input.value.toLowerCase().trim();
+                box.innerHTML = "";
+
+                if (keyword === "") {
+                    box.classList.add("hidden");
+                    return;
+                }
+
+                // Defensive check: pastikan dosen.nama dikonversi ke String untuk mencegah error toLowerCase
+                const hasilFilter = semuaDosenData.filter(dosen => 
+                    dosen.nama && String(dosen.nama).toLowerCase().includes(keyword)
+                );
+
+                if (hasilFilter.length === 0) {
+                    box.innerHTML = '<div class="p-3 text-xs text-slate-400 italic">Nama tidak ditemukan</div>';
+                    box.classList.remove("hidden");
+                    return;
+                }
+
+                hasilFilter.forEach(dosen => {
+                    const item = document.createElement("div");
+                    item.className = "p-3 text-sm font-medium text-slate-700 hover:bg-slate-50 cursor-pointer transition-colors border-b border-slate-100 last:border-none flex justify-between items-center";
+                    
+                    let statusBadge = dosen.sudahIsi 
+                        ? `<span class="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full shadow-sm"><i class="fas fa-check mr-1"></i>Sudah RSVP</span>`
+                        : ``;
+
+                    item.innerHTML = `<span>${dosen.nama}</span> ${statusBadge}`;
+                    
+                    item.addEventListener("click", () => {
+                        input.value = dosen.nama;
+                        box.classList.add("hidden");
+
+                        if (dosen.sudahIsi) {
+                            tawarkanEdit(dosen);
+                        } else {
+                            resetFormKeDefault();
+                        }
+                    });
+                    
+                    box.appendChild(item);
+                });
+
+                box.classList.remove("hidden");
+            }
+        }
+
+        function tawarkanEdit(dosen) {
+            Swal.fire({
+                html: `
+                    <div class="pt-3 pb-1">
+                        <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-3 mx-auto">
+                            <i class="fas fa-info-circle text-blue-500 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Sudah Mengisi</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Bapak/Ibu <b>${dosen.nama}</b> sudah mengonfirmasi kehadiran sebelumnya. Ingin mengubah data kehadiran Anda?</p>
+                    </div>
+                `,
+                showCancelButton: true,
+                buttonsStyling: false,
+                confirmButtonText: 'Ya, Ubah Data',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                customClass: {
+                    popup: 'rounded-3xl shadow-2xl border border-slate-100',
+                    confirmButton: 'bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-all shadow-sm ml-3 text-sm',
+                    cancelButton: 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold py-2.5 px-6 rounded-xl transition-all shadow-sm text-sm',
+                    backdrop: 'backdrop-blur-sm bg-slate-900/40'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    isiFormDenganDataLama(dosen.dataLama);
+                } else {
+                    document.getElementById('namaDosen').value = "";
+                    resetFormKeDefault();
+                }
+            });
+        }
+
+        function isiFormDenganDataLama(data) {
+            if(!data) return;
+            const form = document.getElementById('rsvpForm');
+
+            if(data.h1) {
+                const h1Radios = form.elements['h1'];
+                for(let i=0; i<h1Radios.length; i++) {
+                    if(h1Radios[i].value === data.h1) {
+                        h1Radios[i].checked = true;
+                        toggleAlasan('h1', data.h1 !== 'Hadir');
+                        break;
+                    }
+                }
+            }
+            if(data.alasanH1 && data.alasanH1 !== '-') document.getElementById('alasanH1').value = data.alasanH1;
+
+            if(data.h2) {
+                const h2Radios = form.elements['h2'];
+                for(let i=0; i<h2Radios.length; i++) {
+                    if(h2Radios[i].value === data.h2) {
+                        h2Radios[i].checked = true;
+                        toggleAlasan('h2', data.h2 !== 'Hadir');
+                        break;
+                    }
+                }
+            }
+            if(data.alasanH2 && data.alasanH2 !== '-') document.getElementById('alasanH2').value = data.alasanH2;
+
+            if(data.catatan && data.catatan !== '-') document.getElementById('catatan').value = data.catatan;
+
+            document.getElementById('btnKirim').innerHTML = '<i class="fas fa-save opacity-90 mr-1"></i><span>Perbarui Konfirmasi Kehadiran</span>';
+        }
+
+        function resetFormKeDefault() {
+            const form = document.getElementById('rsvpForm');
+            const namaBackup = document.getElementById('namaDosen').value; 
+            
+            form.reset(); 
+            document.getElementById('namaDosen').value = namaBackup; 
+
+            toggleAlasan('h1', false);
+            toggleAlasan('h2', false);
+            document.getElementById('btnKirim').innerHTML = '<span>Kirim Konfirmasi Kehadiran</span>';
         }
 
         function toggleAlasan(hari, tunjukkan) {
@@ -208,18 +354,53 @@
 
         function konfirmasiKirim() {
             var form = document.getElementById('rsvpForm');
+            var inputNama = document.getElementById('namaDosen').value.trim();
+
             if (!form.checkValidity()) { form.reportValidity(); return; }
 
+            // Defensive Check pada pencarian nama valid
+            if (!semuaDosenData.some(d => String(d.nama) === inputNama)) {
+                Swal.fire({
+                    html: `
+                        <div class="flex flex-col items-center pt-2">
+                            <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mb-3">
+                                <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mb-1">Nama Tidak Valid</h3>
+                            <p class="text-sm text-slate-500 text-center">Silakan pilih nama yang tersedia dari daftar saran.</p>
+                        </div>
+                    `,
+                    buttonsStyling: false,
+                    confirmButtonText: 'Mengerti',
+                    customClass: {
+                        popup: 'rounded-3xl shadow-2xl border border-slate-100',
+                        confirmButton: 'bg-slate-800 hover:bg-slate-900 text-white font-semibold py-2.5 px-8 rounded-xl transition-all shadow-sm text-sm mt-2',
+                        backdrop: 'backdrop-blur-sm bg-slate-900/40'
+                    }
+                });
+                return;
+            }
+
             Swal.fire({
-                title: 'Konfirmasi Kehadiran',
-                text: "Mohon pastikan status kehadiran yang Anda pilih sudah benar sebelum dikirimkan.",
-                icon: 'question',
+                html: `
+                    <div class="pt-3 pb-1">
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Simpan Data?</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Pastikan pilihan kehadiran Anda sudah benar sebelum menyimpan.</p>
+                    </div>
+                `,
                 showCancelButton: true,
-                confirmButtonColor: '#2563eb',
-                cancelButtonColor: '#94a3b8',
-                confirmButtonText: 'Kirim Konfirmasi',
-                cancelButtonText: 'Periksa Kembali',
-                reverseButtons: true
+                buttonsStyling: false,
+                confirmButtonText: 'Ya, Simpan',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                focusCancel: true,
+                customClass: {
+                    popup: 'rounded-3xl shadow-2xl border border-slate-100',
+                    confirmButton: 'bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-xl transition-all shadow-sm ml-3 text-sm',
+                    cancelButton: 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold py-2.5 px-6 rounded-xl transition-all shadow-sm text-sm',
+                    backdrop: 'backdrop-blur-sm bg-slate-900/40',
+                    actions: 'mt-5'
+                }
             }).then((result) => {
                 if (result.isConfirmed) { eksekusiKirimForm(form); }
             });
@@ -227,7 +408,24 @@
 
         function eksekusiKirimForm(form) {
             document.getElementById("btnKirim").disabled = true;
-            Swal.fire({ title: 'Sedang Mengirim...', text: 'Mohon tunggu...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
+            Swal.fire({ 
+                html: `
+                    <div class="flex flex-col items-center justify-center py-6">
+                        <svg class="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="text-sm font-semibold text-slate-700 tracking-wide">Menyimpan data...</span>
+                    </div>
+                `,
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                customClass: {
+                    popup: 'rounded-3xl shadow-2xl border border-slate-100 w-auto px-10',
+                    backdrop: 'backdrop-blur-sm bg-slate-900/40'
+                }
+            });
             
             const dataData = {
                 namaDosen: document.getElementById('namaDosen').value,
@@ -240,7 +438,7 @@
 
             fetch(endpoint, {
                 method: 'POST',
-                mode: 'no-cors', // Mencegah pemblokiran CORS browser saat lempar data ke Google
+                mode: 'no-cors',
                 body: JSON.stringify(dataData)
             })
             .then(() => {
@@ -249,7 +447,24 @@
                 document.getElementById("successMessage").classList.remove('hidden');
             })
             .catch(err => {
-                Swal.fire('Gagal', 'Terjadi masalah pengiriman ke server.', 'error');
+                Swal.fire({
+                    html: `
+                        <div class="flex flex-col items-center pt-2">
+                            <div class="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mb-3">
+                                <i class="fas fa-times text-red-500 text-xl"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-slate-800 mb-1">Pengiriman Gagal</h3>
+                            <p class="text-sm text-slate-500 text-center">Terjadi masalah koneksi ke server.</p>
+                        </div>
+                    `,
+                    buttonsStyling: false,
+                    confirmButtonText: 'Tutup',
+                    customClass: {
+                        popup: 'rounded-3xl shadow-2xl border border-slate-100',
+                        confirmButton: 'bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 px-8 rounded-xl transition-all shadow-sm text-sm mt-2',
+                        backdrop: 'backdrop-blur-sm bg-slate-900/40'
+                    }
+                });
                 document.getElementById("btnKirim").disabled = false;
             });
         }
